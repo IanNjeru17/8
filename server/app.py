@@ -16,13 +16,20 @@ app.config['SECRET_KEY'] = "your secret key"
 
 db.init_app(app)
 migrate = Migrate(app, db)
+api = Api(app)
 CORS(app)
 
 @app.route('/')
 def home():
     return {"msg":"Hello World"}
-    
 
+class Products(Resource):
+    def get(self):
+        product = [product.to_dict() for product in Product.query.all()]
+        return product, 200
+    
+class
+api.add_resource(Products, '/products')
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
