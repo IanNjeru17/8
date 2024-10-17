@@ -1,6 +1,6 @@
 from flask import Flask, request
-from models import Product, FarmerProduct, Order,Customer, db
-from flask_restful import Api,Resource
+from models import Product, FarmerProduct, Order, User, db
+from flask_restful import Api, Resource
 from flask_cors import CORS
 from flask_migrate import Migrate
 
@@ -17,70 +17,70 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return {"msg":"Hello World"}
+    return {"msg": "Hello World"}
 
 class Products(Resource):
     def get(self):
-        product = [product.to_dict() for product in Product.query.all()]
-        return product, 200
-    
-class Customers(Resource):
+        products = [product.to_dict() for product in Product.query.all()]
+        return products, 200
+
+class Users(Resource):
     def get(self):
-        customers = [customer.to_dict() for customer in Customer.query.all()]
-        return customers, 200
+        users = [user.to_dict() for user in User.query.all()]
+        return users, 200
     
     def post(self):
         data = request.get_json()
         try:
-            
-            new_customer = Customer(
+            new_user = User(
                 first_name=data.get('first_name'),
                 last_name=data.get('last_name'),
                 location=data.get('location'),
                 email=data.get('email'),
-                phone=data.get('phone')
+                phone=data.get('phone'),
+                user_type=data.get('user_type')  # 'customer' or 'farmer'
             )
-            db.session.add(new_customer)
+            db.session.add(new_user)
             db.session.commit()
-            return new_customer.to_dict(), 201
+            return new_user.to_dict(), 201
         except Exception as e:
             return {'error': str(e)}, 400
-            
-class CustomerById(Resource):
-    def get(self, customer_id):
-        customer = Customer.query.get(customer_id)
-        if customer:
-            return customer.to_dict(), 200
+
+class UserById(Resource):
+    def get(self, user_id):
+        user = User.query.get(user_id)
+        if user:
+            return user.to_dict(), 200
         else:
-            return {'error': 'Customer not found'}, 404
+            return {'error': 'User not found'}, 404
         
-    def patch(self, customer_id):  
-        customer = Customer.query.get(customer_id)
-        if not customer:
-            return {'error': 'Customer not found'}, 404
+    def patch(self, user_id):  
+        user = User.query.get(user_id)
+        if not user:
+            return {'error': 'User not found'}, 404
         data = request.get_json()
         try:
-            
             if 'first_name' in data:
-                customer.first_name = data['first_name']
+                user.first_name = data['first_name']
             if 'last_name' in data:
-                customer.last_name = data['last_name']
+                user.last_name = data['last_name']
             if 'location' in data:
-                customer.location = data['location']
+                user.location = data['location']
             if 'email' in data:
-                customer.email = data['email']
+                user.email = data['email']
             if 'phone' in data:
-                customer.phone = data['phone']
+                user.phone = data['phone']
+            if 'user_type' in data:
+                user.user_type = data['user_type']
             
             db.session.commit()
-            return customer.to_dict(), 200
+            return user.to_dict(), 200
         except Exception as e:
             return {'error': str(e)}, 400
 
 api.add_resource(Products, '/products')
-api.add_resource(Customers, '/customers')
-api.add_resource(CustomerById, '/customers/<int:customer_id>')
+api.add_resource(Users, '/users')
+api.add_resource(UserById, '/users/<int:user_id>')
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
-
